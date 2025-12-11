@@ -3,15 +3,31 @@
 *.depend
 *.layout
 *.workspace
-
-# Compiled files
+*.dll
 *.exe
 *.o
 *.obj
 
-# Executable in CODE folder
+# Compiled executables
 CODE/FoodWasteManager.exe
+FoodWasteManager.exe
 
-# System files
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+*.aps
+*.ncb
+*.opendb
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
