@@ -1,1 +1,35 @@
 git status --ignored
+
+# Code::Blocks files
+*.cbp
+*.depend
+*.layout
+*.workspace
+*.dll
+*.exe
+*.o
+*.obj
+
+# Compiled executables
+CODE/FoodWasteManager.exe
+FoodWasteManager.exe
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+*.aps
+*.ncb
+*.opendb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
