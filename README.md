@@ -16,4 +16,5 @@ This is a C++ console application that helps track food inventory and reduce was
 #### Steps to Setup
 1. Clone the repository:
    git clone https://github.com/424003416/GROUP-12_SDG12_FoodWasteManager.git
+
    cd GROUP-12_SDG12_FoodWasteManager
