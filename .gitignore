@@ -1,41 +1,17 @@
-# Prerequisites
-*.d
+# Code::Blocks files
+*.cbp
+*.depend
+*.layout
+*.workspace
 
-# Compiled Object files
-*.slo
-*.lo
+# Compiled files
+*.exe
 *.o
 *.obj
 
-# Precompiled Headers
-*.gch
-*.pch
+# Executable in CODE folder
+CODE/FoodWasteManager.exe
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+# System files
+.DS_Store
+Thumbs.db
