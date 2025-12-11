@@ -1,0 +1,1 @@
+# CANEO_SDG12_FoodWasteManager
