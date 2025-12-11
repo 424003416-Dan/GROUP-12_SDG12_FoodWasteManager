@@ -87,7 +87,6 @@ Data Persistence:
 • System loads previous data automatically on startup
 
 # Contributors
-Solo Developer:
 Dan Edryl L. Caneo - BSIT 2nd Year Student
 
 Primary Contributions:
