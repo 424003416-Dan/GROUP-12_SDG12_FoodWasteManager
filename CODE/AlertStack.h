@@ -4,7 +4,6 @@
 #include <string>
 
 // CLASS FOR MANAGING ALERT MESSAGES USING A STACK
-// THIS IS A LIFO (LAST IN, FIRST OUT) DATA STRUCTURE
 class AlertStack {
 private:
     std::string alerts[50];  // FIXED-SIZE ARRAY TO STORE ALERT MESSAGES - MAX 50
