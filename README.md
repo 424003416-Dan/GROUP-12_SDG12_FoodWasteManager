@@ -26,7 +26,7 @@ Guarantees O(n log n) performance in all cases, unlike Quick Sort which can degr
 
 # Steps to Setup:
 1. Clone the repository:
-• git clone https://github.com/424003416-Dan/GROUP-12_SDG12_FoodWasteManager/edit/main/README.md
+• git clone https://github.com/424003416-Dan/GROUP-12_SDG12_FoodWasteManager
 • cd GROUP-12_SDG12_FoodWasteManager
 
 2. Set up the project in Code::Blocks:
