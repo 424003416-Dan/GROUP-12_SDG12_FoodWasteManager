@@ -1,300 +1,203 @@
-// FOOD WASTE MANAGEMENT SYSTEM MAIN PROGRAM
-// THIS IS THE MAIN FILE THAT RUNS THE WHOLE PROGRAM
-// IT USES THREE DSA CONCEPTS: ARRAY, STACK, AND MERGE SORT
-
-#include "Utilities.h"
 #include "FoodArray.h"
-#include "AlertStack.h"
-#include "MergeSort.h"
 #include <iostream>
-#include <string>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 
-// THESE ARE THE THREE MAIN DATA STRUCTURES FOR THE PROGRAM
-FoodArray inventory;      // ARRAY - STORES FOOD ITEMS
-AlertStack alertStack;    // STACK - STORES RECENT ALERTS
-MergeSort wasteAnalytics; // MERGE SORT - SORTS WASTE LOGS
+// CONSTRUCTOR - MAKES EMPTY ARRAY WITH 0 ITEMS
+FoodArray::FoodArray() : itemCount(0) {}
 
-// FUNCTION DECLARATIONS
-void login();
-void showMenu();
-void addFoodItem();
-void logWaste();
-void runPerformanceTest();
-
-// MAIN FUNCTION
-int main() {
-    // FIX TERMINAL COLOR ON WINDOWS
-    #ifdef _WIN32
-        system("color");
-    #endif
-
-    Utilities::clearScreen();
-    cout << Utilities::GREEN << "INITIALIZING FOOD WASTE MANAGEMENT SYSTEM...\n" << Utilities::RESET;;
-
-    // LOAD SAVED DATA FROM FILES
-    inventory.loadFromFile("INPUT_DATA/inventory.dat");
-    wasteAnalytics.loadFromFile("INPUT_DATA/waste.dat");
-    alertStack.loadFromFile("INPUT_DATA/alerts.dat");
-
-    cout << "LOADED " << inventory.getItemCount() << " ITEMS AND "
-         << wasteAnalytics.getWasteCount() << " WASTE LOGS.\n";
-    Utilities::pauseScreen();
-
-    login();  // ASK USER TO LOGIN FIRST
-
-    int choice;  // WILL HOLD USER'S MENU CHOICE
-    do {
-        showMenu();  // SHOW MAIN MENU
-        choice = Utilities::getValidatedInt("\nENTER YOUR CHOICE: ", 0, 6);
-
-        // DO DIFFERENT THINGS BASED ON USER CHOICE
-        switch(choice) {
-            case 1:  // SHOW ALL FOOD ITEMS
-                inventory.displayAll();
-                Utilities::pauseScreen();
-                break;
-            case 2:  // SHOW EXPIRY ALERTS
-                inventory.displayExpiryAlerts();
-                Utilities::pauseScreen();
-                break;
-            case 3:  // ADD NEW FOOD ITEM
-                addFoodItem();
-                Utilities::pauseScreen();
-                break;
-            case 4:  // LOG WASTED FOOD
-                logWaste();
-                Utilities::pauseScreen();
-                break;
-            case 5:  // VIEW SORTED WASTE DATA
-                wasteAnalytics.sortByQuantity();
-                wasteAnalytics.displaySorted();
-                Utilities::pauseScreen();
-                break;
-            case 6:  // RUN PERFORMANCE TESTS
-                runPerformanceTest();
-                Utilities::pauseScreen();
-                break;
-            case 0:  // EXIT PROGRAM
-                Utilities::clearScreen();
-                cout << Utilities::GREEN << "SAVING ALL DATA AND EXITING...\n" << Utilities::RESET;
-                inventory.saveToFile("INPUT_DATA/inventory.dat");
-                wasteAnalytics.saveToFile("INPUT_DATA/waste.dat");
-                alertStack.saveToFile("INPUT_DATA/alerts.dat");
-                break;
-            default:  // IF USER ENTERS WRONG NUMBER
-                cout << Utilities::RED << "INVALID CHOICE!\n" << Utilities::RESET;
-                Utilities::pauseScreen();
-        }
-    } while (choice != 0);  // KEEP GOING UNTIL USER CHOOSES 0
-
-    // SAY GOODBYE MESSAGE
-    Utilities::clearScreen();
-    cout << Utilities::GREEN << "========================================\n";
-    cout << "   THANK YOU FOR USING FOOD WASTE MANAGER\n";
-    cout << "   UN SDG 12: RESPONSIBLE CONSUMPTION\n";
-    cout << "========================================\n" << Utilities::RESET;
-
-    return 0;  // END PROGRAM
+// ADDS NEW ITEM TO END OF ARRAY IF THERE IS SPACE
+void FoodArray::addItem(const FoodItem& item) {
+    if (itemCount >= 1000) {
+        cout << Utilities::RED << "INVENTORY IS FULL!\n" << Utilities::RESET;
+        return;
+    }
+    inventory[itemCount] = item;  // PUT ITEM AT END
+    itemCount++;                  // INCREASE COUNTER
 }
 
-// LOGIN FUNCTION
-void login() {
-    while (true) {  // KEEP TRYING UNTIL GET RIGHT PASSWORD
-        Utilities::clearScreen();
+// REMOVES ITEM FROM ARRAY BY INDEX
+void FoodArray::removeItem(int index) {
+    if (index < 0 || index >= itemCount) return;  // CHECK IF INDEX IS GOOD
+    shiftItemsLeft(index);  // FILL THE GAP
+    itemCount--;            // ONE LESS ITEM NOW
+}
 
-        // SHOW LOGIN SCREEN HEADER
-        cout << Utilities::CYAN << "========================================\n";
-        cout << "     FOOD WASTE MANAGEMENT SYSTEM\n";
-        cout << "     UN SDG 12: REDUCE FOOD WASTE\n";
-        cout << "========================================\n" << Utilities::RESET;
-        cout << "\nADMINISTRATOR LOGIN\n";
-        cout << "----------------------------------------\n";
-
-        string username, password;  // STORAGE FOR USER INPUT
-
-        cout << "USERNAME: ";
-        getline(cin, username);  // GET USERNAME
-
-        cout << "PASSWORD: ";
-        getline(cin, password);  // GET PASSWORD
-
-        // CHECK IF USERNAME AND PASSWORD ARE CORRECT
-        if (username == "admin" && password == "admin123") {
-            cout << Utilities::GREEN << "\nLOGIN SUCCESSFUL! WELCOME ADMIN.\n" << Utilities::RESET;
-            Utilities::pauseScreen();
-            return;  // EXIT LOGIN FUNCTION
-        } else {
-            // IF LOGIN FAILS
-            Utilities::clearScreen();
-            cout << Utilities::RED << "========================================\n";
-            cout << "           LOGIN FAILED\n";
-            cout << "========================================\n" << Utilities::RESET;
-            cout << "INVALID USERNAME OR PASSWORD!\n";
-            cout << Utilities::YELLOW << "PLEASE TRY AGAIN\n" << Utilities::RESET;
-            cout << "DEFAULT CREDENTIALS: admin / admin123\n";
-            cout << "----------------------------------------\n";
-            Utilities::pauseScreen();
-        }
+// HELPER FUNCTION - MOVES ITEMS TO FILL EMPTY SPOT
+void FoodArray::shiftItemsLeft(int startIndex) {
+    // LOOP FROM REMOVED SPOT TO END OF ARRAY
+    for (int i = startIndex; i < itemCount - 1; i++) {
+        inventory[i] = inventory[i + 1];  // MOVE EACH ITEM ONE LEFT
     }
 }
 
-// SHOWS THE MAIN MENU SCREEN
-void showMenu() {
-    Utilities::clearScreen();
-
-    string currentDate = Utilities::getCurrentDate();  // GET TODAYS DATE
-
-    // SHOW PROGRAM HEADER
-    cout << Utilities::CYAN << "========================================\n";
-    cout << "     FOOD WASTE MANAGER - ADMIN PANEL\n";
-    cout << "========================================\n" << Utilities::RESET;
-    cout << "DATE: " << currentDate << "\n";
-    cout << "INVENTORY: " << inventory.getItemCount() << " ITEMS\n";
-    cout << "WASTE LOGS: " << wasteAnalytics.getWasteCount() << " RECORDS\n";
-    cout << "----------------------------------------\n";
-
-    alertStack.displayRecent();  // SHOW RECENT ALERTS
-
-    // SHOW MENU OPTIONS
-    cout << Utilities::CYAN << "\nMAIN MENU:\n";
-    cout << "----------------------------------------\n" << Utilities::RESET;
-    cout << "[1] VIEW FOOD INVENTORY\n";
-    cout << "[2] CHECK EXPIRY ALERTS\n";
-    cout << "[3] ADD FOOD ITEM\n";
-    cout << "[4] LOG WASTE FOOD\n";
-    cout << "[5] VIEW WASTE ANALYTICS\n";
-    cout << "[6] PERFORMANCE TEST\n";
-    cout << "[0] EXIT PROGRAM\n";
-    cout << Utilities::CYAN << "========================================\n" << Utilities::RESET;
+// CHANGES HOW MANY OF AN ITEM WE HAVE
+void FoodArray::updateQuantity(int index, int newQuantity) {
+    if (index >= 0 && index < itemCount) {
+        inventory[index].quantity = newQuantity;  // JUST CHANGE THE NUMBER
+    }
 }
 
-// FUNCTION TO ADD NEW FOOD ITEM TO INVENTORY
-void addFoodItem() {
-    Utilities::clearScreen();
-
-    cout << Utilities::CYAN << "========================================\n";
-    cout << "            ADD FOOD ITEM\n";
-    cout << "========================================\n" << Utilities::RESET;
-
-    string name, expiry, category;  // VARIABLES FOR NEW ITEM DATA
-    int quantity, categoryChoice;   // MORE VARIABLES
-
-    cout << "FOOD NAME: ";
-    getline(cin, name);  // GET ITEM NAME
-
-    quantity = Utilities::getValidatedInt("QUANTITY: ", 1, 10000);  // GET VALID QUANTITY
-
-    // SHOW CATEGORY OPTIONS
-    cout << "\nSELECT CATEGORY:\n";
-    for (int i = 0; i < 6; i++) {
-        cout << "[" << i+1 << "] " << Utilities::CATEGORIES[i] << "\n";
+// GETS ITEM FROM ARRAY BY INDEX - RETURNS POINTER OR NULL
+FoodItem* FoodArray::getItem(int index) {
+    if (index >= 0 && index < itemCount) {
+        return &inventory[index];  // GIVE ADDRESS OF ITEM
     }
-    categoryChoice = Utilities::getValidatedInt("CHOICE (1-6): ", 1, 6);  // GET CATEGORY CHOICE
-    category = Utilities::CATEGORIES[categoryChoice-1];  // CONVERT CHOICE TO CATEGORY NAME
-
-    cout << "EXPIRY DATE (YYYY-MM-DD): ";
-    getline(cin, expiry);  // GET EXPIRY DATE
-
-    // CREATE NEW FOOD ITEM OBJECT
-    FoodItem newItem;
-    newItem.name = name;
-    newItem.quantity = quantity;
-    newItem.expiry = expiry;
-    newItem.category = category;
-    newItem.daysToExpiry = Utilities::calculateDaysToExpiry(expiry);  // CALCULATE DAYS LEFT
-
-    inventory.addItem(newItem);  // ADD TO INVENTORY
-    inventory.saveToFile("inventory.dat");  // SAVE TO FILE
-
-    // IF ITEM EXPIRES SOON, MAKE AN ALERT
-    if (newItem.daysToExpiry <= 7) {
-        string alert = "NEW ITEM '" + name + "' EXPIRES IN " +
-                      to_string(newItem.daysToExpiry) + " DAYS";
-        alertStack.push(alert);  // ADD ALERT TO STACK
-    }
-
-    cout << Utilities::GREEN << "\nITEM ADDED SUCCESSFULLY!\n" << Utilities::RESET;
+    return nullptr;  // RETURN NULL IF BAD INDEX
 }
 
-// FUNCTION TO LOG FOOD WASTAGE
-void logWaste() {
-    Utilities::clearScreen();
+// TELLS HOW MANY ITEMS ARE IN ARRAY
+int FoodArray::getItemCount() const {
+    return itemCount;
+}
 
-    // CHECK IF THERE ARE ANY ITEMS FIRST
-    if (inventory.getItemCount() == 0) {
-        cout << Utilities::RED << "NO ITEMS TO LOG AS WASTE!\n" << Utilities::RESET;
+// SHOWS ALL ITEMS IN NICE TABLE FORMAT
+void FoodArray::displayAll() const {
+    // PRINT TABLE HEADER WITH COLORS
+    cout << Utilities::CYAN << "+----+------------------------+----------+------------+------------+------------+\n";
+    cout << "| NO | ITEM NAME              | QUANTITY | EXPIRY     | CATEGORY   | DAYS LEFT  |\n";
+    cout << "+----+------------------------+----------+------------+------------+------------+\n" << Utilities::RESET;
+
+    // CHECK IF ARRAY IS EMPTY
+    if (itemCount == 0) {
+        cout << "|" << setw(60) << "NO ITEMS IN INVENTORY" << setw(15) << "|\n";
+        cout << Utilities::CYAN << "+----+------------------------+----------+------------+------------+------------+\n" << Utilities::RESET;
         return;
     }
 
-    inventory.displayAll();  // SHOW ALL ITEMS
+    // LOOP THROUGH ALL ITEMS AND PRINT EACH ONE
+    for (int i = 0; i < itemCount; i++) {
+        string color = Utilities::GREEN;  // DEFAULT GREEN COLOR
+        string status;  // TEXT FOR DAYS LEFT COLUMN
 
-    // ASK WHICH ITEM TO LOG AS WASTE
-    int itemNumber = Utilities::getValidatedInt("\nENTER ITEM NUMBER TO LOG WASTE: ", 1, inventory.getItemCount());
-    int itemIndex = itemNumber - 1;  // CONVERT TO ARRAY INDEX
+        // DECIDE COLOR AND TEXT BASED ON HOW SOON IT EXPIRES
+        if (inventory[i].daysToExpiry < 0) {
+            color = Utilities::RED;
+            status = "EXPIRED";
+        } else if (inventory[i].daysToExpiry == 0) {
+            color = Utilities::RED;
+            status = "TODAY";
+        } else if (inventory[i].daysToExpiry <= 3) {
+            color = Utilities::RED;
+            status = to_string(inventory[i].daysToExpiry);
+        } else if (inventory[i].daysToExpiry <= 7) {
+            color = Utilities::YELLOW;
+            status = to_string(inventory[i].daysToExpiry);
+        } else {
+            status = to_string(inventory[i].daysToExpiry);
+        }
 
-    FoodItem* item = inventory.getItem(itemIndex);  // GET THE ITEM
-    if (!item) return;  // IF ITEM NOT FOUND, RETURN
-
-    // ASK HOW MUCH WAS WASTED
-    int wasteQty = Utilities::getValidatedInt(
-        "WASTE QUANTITY (MAX " + to_string(item->quantity) + "): ",
-        1, item->quantity
-    );
-
-    // ASK REASON FOR WASTAGE
-    cout << "\nSELECT REASON:\n";
-    for (int i = 0; i < 4; i++) {
-        cout << "[" << i+1 << "] " << Utilities::REASONS[i] << "\n";
+        // PRINT ONE ROW OF TABLE WITH FORMATTING
+        cout << "| " << setw(2) << i+1 << " | ";
+        cout << left << setw(22) << inventory[i].name << " | ";
+        cout << right << setw(8) << inventory[i].quantity << " | ";
+        cout << left << setw(10) << inventory[i].expiry << " | ";
+        cout << left << setw(10) << inventory[i].category << " | ";
+        cout << color << setw(10) << status << Utilities::RESET << " |\n";
     }
-    int reasonChoice = Utilities::getValidatedInt("CHOICE (1-4): ", 1, 4);
-    string reason = Utilities::REASONS[reasonChoice-1];  // CONVERT CHOICE TO REASON
 
-    // UPDATE INVENTORY - REDUCE QUANTITY
-    item->quantity -= wasteQty;
-    if (item->quantity <= 0) {  // IF NO MORE LEFT, REMOVE ITEM
-        inventory.removeItem(itemIndex);
-    }
-
-    // CREATE WASTE LOG RECORD
-    WasteLog log;
-    log.itemName = item->name;
-    log.quantity = wasteQty;
-    log.reason = reason;
-    log.date = Utilities::getCurrentDate();  // USE TODAYS DATE
-
-    wasteAnalytics.addLog(log);  // ADD TO WASTE ANALYTICS
-
-    // ADD ALERT ABOUT WASTAGE
-    string alert = "WASTE LOGGED: " + log.itemName + " (" + to_string(log.quantity) + " UNITS)";
-    alertStack.push(alert);
-
-    // SAVE ALL DATA TO FILES
-    inventory.saveToFile("inventory.dat");
-    wasteAnalytics.saveToFile("waste.dat");
-
-    cout << Utilities::GREEN << "\nWASTE LOGGED SUCCESSFULLY!\n" << Utilities::RESET;
+    // PRINT TABLE BOTTOM LINE
+    cout << Utilities::CYAN << "+----+------------------------+----------+------------+------------+------------+\n" << Utilities::RESET;
 }
 
-// FUNCTION TO TEST PERFORMANCE OF DATA STRUCTURES
-void runPerformanceTest() {
-    Utilities::clearScreen();
-    cout << Utilities::CYAN << "========================================\n";
-    cout << "            PERFORMANCE TEST\n";
-    cout << "========================================\n" << Utilities::RESET;
+// SHOWS ONLY ITEMS THAT EXPIRE SOON (FOR ALERTS)
+void FoodArray::displayExpiryAlerts() const {
+    // PRINT TABLE HEADER
+    cout << Utilities::CYAN << "+----+------------------------+----------+------------+------------+------------+\n";
+    cout << "| NO | ITEM NAME              | QUANTITY | EXPIRY     | CATEGORY   | STATUS     |\n";
+    cout << "+----+------------------------+----------+------------+------------+------------+\n" << Utilities::RESET;
 
-    // TEST ARRAY OPERATIONS
-    cout << "\n1. ARRAY OPERATIONS TEST:\n";
-    cout << "   Items in inventory: " << inventory.getItemCount() << endl;
+    bool hasAlerts = false;  // TRACK IF WE FOUND ANY EXPIRING ITEMS
+    int alertNum = 1;         // NUMBER FOR DISPLAY (NOT SAME AS INDEX)
 
-    // TEST STACK OPERATIONS
-    cout << "\n2. STACK OPERATIONS TEST:\n";
-    cout << "   Recent alerts displayed above\n";
+    // LOOP THROUGH ALL ITEMS
+    for (int i = 0; i < itemCount; i++) {
+        // ONLY SHOW IF EXPIRES IN 7 DAYS OR LESS (OR ALREADY EXPIRED)
+        if (inventory[i].daysToExpiry <= 7 || inventory[i].daysToExpiry < 0) {
+            hasAlerts = true;
+            string status;
+            string color = Utilities::YELLOW;  // DEFAULT YELLOW
 
-    // TEST MERGE SORT PERFORMANCE
-    cout << "\n3. MERGE SORT PERFORMANCE TEST:\n";
-    wasteAnalytics.performanceTest();  // RUN THE TIMING TEST
+            // DECIDE WHAT TO SAY BASED ON EXPIRY STATUS
+            if (inventory[i].daysToExpiry < 0) {
+                status = "EXPIRED";
+                color = Utilities::RED;
+            } else if (inventory[i].daysToExpiry == 0) {
+                status = "TODAY";
+                color = Utilities::RED;
+            } else if (inventory[i].daysToExpiry <= 3) {
+                status = "URGENT";
+                color = Utilities::RED;
+            } else {
+                status = "SOON";
+                color = Utilities::YELLOW;
+            }
 
-    cout << Utilities::GREEN << "\n ALL MODULES FUNCTIONING CORRECTLY\n" << Utilities::RESET;
+            // PRINT ROW FOR THIS ITEM
+            cout << "| " << setw(2) << alertNum << " | ";
+            cout << left << setw(22) << inventory[i].name << " | ";
+            cout << right << setw(8) << inventory[i].quantity << " | ";
+            cout << left << setw(10) << inventory[i].expiry << " | ";
+            cout << left << setw(10) << inventory[i].category << " | ";
+            cout << color << setw(10) << status << Utilities::RESET << " |\n";
+            alertNum++;
+        }
+    }
+
+    // IF NO ITEMS FOUND, SAY SO
+    if (!hasAlerts) {
+        cout << "|" << setw(60) << "NO ITEMS EXPIRING IN THE NEXT 7 DAYS" << setw(15) << "|\n";
+    }
+
+    // PRINT TABLE BOTTOM
+    cout << Utilities::CYAN << "+----+------------------------+----------+------------+------------+------------+\n" << Utilities::RESET;
+}
+
+// CONVERTS DISPLAY NUMBER (1-BASED) TO ARRAY INDEX (0-BASED)
+int FoodArray::findItemIndex(int displayNumber) const {
+    return (displayNumber >= 1 && displayNumber <= itemCount) ? displayNumber - 1 : -1;
+}
+
+// SAVES ALL ITEMS TO TEXT FILE
+void FoodArray::saveToFile(const string& filename) {
+    ofstream file(filename);  // OPEN FILE FOR WRITING
+    if (!file) {
+        cout << Utilities::RED << "ERROR SAVING INVENTORY!\n" << Utilities::RESET;
+        return;
+    }
+
+    file << itemCount << endl;  // SAVE HOW MANY ITEMS FIRST
+
+    // SAVE EACH ITEM, ONE FIELD PER LINE
+    for (int i = 0; i < itemCount; i++) {
+        file << inventory[i].name << endl;
+        file << inventory[i].quantity << endl;
+        file << inventory[i].expiry << endl;
+        file << inventory[i].category << endl;
+        file << inventory[i].daysToExpiry << endl;
+    }
+    file.close();  // CLOSE FILE
+}
+
+// LOADS ITEMS FROM TEXT FILE
+void FoodArray::loadFromFile(const string& filename) {
+    ifstream file(filename);  // OPEN FILE FOR READING
+    if (!file) return;        // IF CANT OPEN, JUST RETURN
+
+    file >> itemCount;  // READ HOW MANY ITEMS
+    file.ignore();      // IGNORE NEWLINE AFTER NUMBER
+
+    // READ EACH ITEM FROM FILE
+    for (int i = 0; i < itemCount && i < 1000; i++) {
+        getline(file, inventory[i].name);     // READ NAME
+        file >> inventory[i].quantity;        // READ QUANTITY
+        file.ignore();                        // IGNORE NEWLINE
+        getline(file, inventory[i].expiry);   // READ EXPIRY DATE
+        getline(file, inventory[i].category); // READ CATEGORY
+        file >> inventory[i].daysToExpiry;    // READ DAYS TO EXPIRY
+        file.ignore();                        // IGNORE NEWLINE
+    }
+    file.close();  // CLOSE FILE
 }
